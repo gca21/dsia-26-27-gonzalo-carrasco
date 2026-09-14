@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 def importe_por_region(validos: pd.DataFrame) -> pd.DataFrame:
-    # Importe total por región (desc)
+    # Amount by region (desc)
     importe_por_region = (
         validos.groupby("region", as_index=False)["importe"]
         .sum()
@@ -14,7 +14,7 @@ def importe_por_region(validos: pd.DataFrame) -> pd.DataFrame:
     return importe_por_region
 
 def top_3_importe(validos: pd.DataFrame) -> pd.DataFrame:
-    # Top 3 productos por importe
+    # Top 3 products by amount
     top_productos = (
         validos.groupby("producto", as_index=False)["importe"]
         .sum()
