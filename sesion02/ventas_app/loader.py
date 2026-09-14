@@ -1,15 +1,10 @@
 from __future__ import annotations
 
-from datetime import date
 from pathlib import Path
-import json
 
 import numpy as np
 import pandas as pd
 
-
-
-DATA_DIR = Path("data")
 
 def cargar_ventas(path: Path) -> pd.DataFrame:
     if not path.exists():
@@ -19,7 +14,10 @@ def cargar_ventas(path: Path) -> pd.DataFrame:
 
 # Execute scrip directly for diagnosing
 if __name__ == "__main__":
+    # Load dataset
+    DATA_DIR = Path("data")
     ventas: pd.DataFrame = cargar_ventas(DATA_DIR / "ventas.csv")
+
     print("shape:", ventas.shape)
     print()
     print("dtypes:")
