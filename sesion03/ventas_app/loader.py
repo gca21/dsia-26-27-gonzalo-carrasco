@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from pathlib import Path
 
 import numpy as np
@@ -20,8 +19,8 @@ def load(path: Path) -> pd.DataFrame:
 # Execute scrip directly for diagnosing
 if __name__ == "__main__":
     # Load dataset
-    DATA_DIR = Path("data")
-    ventas: pd.DataFrame = cargar_ventas(DATA_DIR / "ventas.csv")
+    DATA_DIR = Path(__file__).resolve().parent.parent.joinpath("data")
+    ventas: pd.DataFrame = load(DATA_DIR / "ventas.csv")
 
     print("shape:", ventas.shape)
     print()
