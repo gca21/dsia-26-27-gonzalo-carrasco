@@ -1,0 +1,41 @@
+from __future__ import annotations
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+
+class DataLoadError(Exception):
+    """Error loading data from the source"""
+
+
+def load(path: Path) -> pd.DataFrame:
+    if not path.exists():
+        raise DataLoadError(f"File not found: {path}")
+    return pd.read_csv(path)
+
+
+
+# Execute scrip directly for diagnosing
+if __name__ == "__main__":
+    # Load dataset
+    DATA_DIR = Path(__file__).resolve().parent.parent.joinpath("data")
+    ventas: pd.DataFrame = load(DATA_DIR / "ventas.csv")
+
+    print("shape:", ventas.shape)
+    print()
+    print("dtypes:")
+    print(ventas.dtypes)
+    print()
+    print("nulos por columna:")
+    print(ventas.isna().sum())
+    print("\n|--------------View of the dataframe--------------|")
+    print(ventas.head())
+    print("\n|--------------Description of the dataframe--------------|")
+    print(ventas.describe(include="all"))
+
+    # Row 4 is invalid due to NaN value in unidades
+    # Through the method describe we know a row contains a negative precio_unitario value
+    print("\nIndex of row with negative value in precio_unitario:", ventas.index[ventas['precio_unitario'] < -1].tolist())
+    print("Row with the negative value:\n", ventas.iloc[8])
+    # Row 8 is invalid due to negative value in precio_unitario
