@@ -17,3 +17,7 @@ print("Path to dataset files:", path)
 extra_csv = Path(dataset_path / "UCS-Satellite-Database-1-1-2023.csv")
 extra_csv.unlink()
 shutil.rmtree(dataset_path / ".complete")
+
+# Rename the csv that will be used
+csv_path = Path(dataset_path / "UCS-Satellite-Database-Officialname-1-1-2023.csv")
+csv_path.rename(dataset_path / "satellites.csv")
