@@ -6,13 +6,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from .loader import load
-from .validator import validar_ventas
-from .metrics import (
-    importe_por_region,
-    top_3_importe,
-    clientes_mas_1_compras,
-)
+from ventas_app.loader import CsvSalesRepository
+from ventas_app.metrics import SalesMetrics
+from ventas_app.validator import SalesValidator
 
 
 def main() -> None:
@@ -36,49 +32,49 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    entrada = args.input
-    salida_csv = args.output
+    input = args.input
+    output_csv = args.output
     # Same directory
-    salida_json = salida_csv.with_name("calidad_datos.json")
+    output_json = output_csv.with_name("calidad_datos.json")
 
     # Create output directory if it doesn't exist
-    salida_csv.parent.mkdir(parents=True, exist_ok=True)
+    output_csv.parent.mkdir(parents=True, exist_ok=True)
 
-    ventas: pd.DataFrame = load(entrada)
+    sales = CsvSalesRepository(input).load()
+    valid, errors = SalesValidator(sales).validate()
 
-    validos, errores = validar_ventas(ventas)
+    print(f"válidas: {len(valid)} | inválidas: {len(errors)}")
 
-    print(f"válidas: {len(validos)} | inválidas: {len(errores)}")
+    metrics = SalesMetrics(valid)
+    amount_by_region = metrics.amount_by_region()
+    print("|----- Importes por región -----|\n", amount_by_region)
 
-    importe_region = importe_por_region(validos)
-    print("|----- Importes por región -----|\n", importe_region)
+    max_amounts = metrics.top_3_amounts()
+    print("|----- Top 3 productos por importe -----|\n", max_amounts)
 
-    max_importes = top_3_importe(validos)
-    print("|----- Top 3 productos por importe -----|\n", max_importes)
-
-    clientes_recurrentes = clientes_mas_1_compras(validos)
+    recurrent_clients = metrics.recurrent_clients()
     print(
         "|----- Clientes con más de una compra -----|\n",
-        clientes_recurrentes,
+        recurrent_clients,
     )
 
-    validos.to_csv(salida_csv, index=False)
+    valid.to_csv(output_csv, index=False)
 
-    calidad = {
-        "filas_totales": int(len(ventas)),
-        "filas_validas": int(len(validos)),
-        "filas_invalidas": int(len(errores)),
-        "importe_total": float(validos["importe"].sum()),
+    quality = {
+        "filas_totales": int(len(sales)),
+        "filas_validas": int(len(valid)),
+        "filas_invalidas": int(len(errors)),
+        "importe_total": float(valid["importe"].sum()),
     }
 
-    salida_json.write_text(
-        json.dumps(calidad, indent=2, ensure_ascii=False),
+    output_json.write_text(
+        json.dumps(quality, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
 
-    print("escrito:", salida_csv)
-    print("escrito:", salida_json)
-    print(calidad)
+    print("escrito:", output_csv)
+    print("escrito:", output_json)
+    print(quality)
 
 
 if __name__ == "__main__":

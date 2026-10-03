@@ -4,26 +4,32 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-def importe_por_region(validos: pd.DataFrame) -> pd.DataFrame:
-    # Amount by region (desc)
-    importe_por_region = (
-        validos.groupby("region", as_index=False)["importe"]
-        .sum()
-        .sort_values("importe", ascending=False)
-    )
-    return importe_por_region
+class SalesMetrics:
+    """Class to obtain metrics from the sales dataframe"""
 
-def top_3_importe(validos: pd.DataFrame) -> pd.DataFrame:
-    # Top 3 products by amount
-    top_productos = (
-        validos.groupby("producto", as_index=False)["importe"]
-        .sum()
-        .sort_values("importe", ascending=False)
-        .head(3)
-    )
-    return top_productos
+    def __init__(self, sales: pd.DataFrame) -> None:
+        self.sales = sales
 
-def clientes_mas_1_compras(validos: pd.DataFrame) -> pd.DataFrame:
-    compras_por_cliente = validos["cliente_id"].value_counts()
-    clientes_recurrentes = compras_por_cliente[compras_por_cliente > 1]
-    return clientes_recurrentes
+    def amount_by_region(self) -> pd.DataFrame:
+        # Amount by region (desc)
+        amount_by_region = (
+            self.sales.groupby("region", as_index=False)["importe"]
+            .sum()
+            .sort_values("importe", ascending=False)
+        )
+        return amount_by_region
+
+    def top_3_amounts(self) -> pd.DataFrame:
+        # Top 3 products by amount
+        top_products = (
+            self.sales.groupby("producto", as_index=False)["importe"]
+            .sum()
+            .sort_values("importe", ascending=False)
+            .head(3)
+        )
+        return top_products
+
+    def recurrent_clients(self) -> pd.DataFrame:
+        purchases_by_clients = self.sales["cliente_id"].value_counts()
+        recurrent_clients = purchases_by_clients[purchases_by_clients > 1]
+        return recurrent_clients
