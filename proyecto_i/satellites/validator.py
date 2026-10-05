@@ -45,7 +45,7 @@ class SatellitesValidator:
             work[col] = work[col].astype("string").str.strip()
         work["Class of Orbit"] = work["Class of Orbit"].str.upper()
 
-        work = work.drop_duplicates()
+        is_duplicate = work.duplicated(keep="first")
 
         ok = (
             work["Name"].notna()
@@ -62,6 +62,7 @@ class SatellitesValidator:
             & (work["Launch Mass (kg.)"].isna() | (work["Launch Mass (kg.)"] > 0))
             & (work["Power (watts)"].isna() | (work["Power (watts)"] > 0))
             & (work["Expected Lifetime (yrs.)"].isna() | (work["Expected Lifetime (yrs.)"] > 0))
+            & ~is_duplicate
         ).fillna(False)
 
         valid = work.loc[ok].copy()
