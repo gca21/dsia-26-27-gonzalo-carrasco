@@ -10,7 +10,7 @@ class DataValidationError(Exception):
 class SalesValidator:
     """Class to validate the sales from a dataframe"""
 
-    def __init__(self, sales: pd.Dataframe) -> None:
+    def __init__(self, sales: pd.DataFrame) -> None:
         self.sales = sales
 
     def validate(self) -> tuple[pd.DataFrame, pd.DataFrame]:
