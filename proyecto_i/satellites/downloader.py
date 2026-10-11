@@ -1,23 +1,30 @@
-import shutil
-import kagglehub
+import os
 from pathlib import Path
 
-dataset_path = Path(__file__).resolve().parent.parent / "data/satellites"
+import requests
+from dotenv import load_dotenv
 
-# Download latest version
-path = kagglehub.dataset_download(
-    "sujaykapadnis/every-known-satellite-orbiting-earth",
-    output_dir=dataset_path,
-    force_download=True
-    )
+project_root = Path(__file__).resolve().parent.parent
+load_dotenv(project_root / ".env")
 
-print("Path to dataset files:", path)
+dataset_path = project_root / "data/satellites"
+dataset_path.mkdir(parents=True, exist_ok=True)
 
-# Remove extra data
-extra_csv = Path(dataset_path / "UCS-Satellite-Database-1-1-2023.csv")
-extra_csv.unlink()
-shutil.rmtree(dataset_path / ".complete")
+BASE = "https://www.space-track.org"
+QUERY = "/basicspacedata/query/class/satcat/CURRENT/Y/orderby/NORAD_CAT_ID asc/format/csv"
 
-# Rename the csv that will be used
-csv_path = Path(dataset_path / "UCS-Satellite-Database-Officialname-1-1-2023.csv")
-csv_path.rename(dataset_path / "satellites.csv")
+# .env credentials for space-strack
+credentials = {
+    "identity": os.environ["SPACETRACK_USER"],
+    "password": os.environ["SPACETRACK_PASS"],
+}
+
+with requests.Session() as session:
+    session.post(f"{BASE}/ajaxauth/login", data=credentials, timeout=60).raise_for_status()
+    response = session.get(BASE + QUERY, timeout=300)
+    response.raise_for_status()
+
+csv_path = dataset_path / "satellites.csv"
+csv_path.write_text(response.text, encoding="utf-8")
+
+print("Path to dataset files:", csv_path)

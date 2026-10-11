@@ -45,15 +45,18 @@ def main() -> None:
 
     print(f"Valid: {len(valid)} | Invalid: {len(errors)}\n")
 
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.max_rows', None)
+
     metrics = SatellitesMetrics(valid)
     launch_growth = metrics.launch_growth()
     print("|----- Launch growth over the years -----|\n", launch_growth, "\n")
 
-    operator_concentration = metrics.operator_concentration(top_n=5)
-    print("|----- Operator concentration -----|\n", operator_concentration, "\n")
+    country_concentration = metrics.country_concentration(top_n=5)
+    print("|----- Country concentration -----|\n", country_concentration, "\n")
 
-    mass_class = metrics.mass_class_distribution()
-    print("|----- Mass class distribution -----|\n", mass_class, "\n")
+    orbit_class = metrics.orbit_class_distribution()
+    print("|----- Orbit class distribution -----|\n", orbit_class, "\n")
 
     valid.to_csv(output_csv, index=False)
 
