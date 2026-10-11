@@ -34,7 +34,7 @@ class SatellitesMetrics:
     def orbit_class_distribution(self) -> pd.DataFrame:
         # Objects grouped by orbit class, with share, median period and payload share
         result = (
-            self.satellites.groupby("ORBIT_CLASS", observed=False)
+            self.satellites.groupby("ORBIT_CLASS", observed=True)
             .agg(
                 objects=("NORAD_CAT_ID", "count"),
                 median_period_min=("PERIOD", "median"),
