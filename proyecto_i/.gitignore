@@ -1,5 +1,7 @@
 *.json
-*.csv
+ventas_limpias.csv
+satellites.csv
+clean_satellites.csv
 .env
 .venv
 __pycache__/
