@@ -82,6 +82,7 @@ class SatellitesValidator:
         return valid, errors
 
     def __orbit_class(self, satellites: pd.DataFrame) -> pd.Categorical:
+        # Calculate orbit classes based on perigee and apogee
         perigee = satellites["PERIGEE"]
         apogee = satellites["APOGEE"]
 

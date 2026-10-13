@@ -30,6 +30,7 @@ class SalesMetrics:
         return top_products
 
     def recurrent_clients(self) -> pd.DataFrame:
+        # Clients with more than one purchase
         purchases_by_clients = self.sales["cliente_id"].value_counts()
         recurrent_clients = purchases_by_clients[purchases_by_clients > 1]
         return recurrent_clients

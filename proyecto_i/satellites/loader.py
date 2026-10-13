@@ -37,6 +37,7 @@ class CsvSatellitesRepository:
         return self.__filter_columns(df)
 
     def __filter_columns(self, satellites: pd.DataFrame) -> pd.DataFrame:
+        # Remove irrelevant columns from the dataframe
         satellites = satellites.rename(columns=str.strip)
         missing = [c for c in self.FEATURES if c not in satellites.columns]
         if missing:
