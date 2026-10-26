@@ -1,4 +1,4 @@
-name: proyecto-i-ci
+name: proyecto-ci
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: proyecto_i
+        working-directory: proyecto
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
