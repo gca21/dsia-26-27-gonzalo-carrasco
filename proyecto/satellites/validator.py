@@ -11,18 +11,25 @@ class DataValidationError(Exception):
 class SatellitesValidator:
     """Class to validate satellites from a dataframe"""
 
+    REQUIRED_COLUMNS = [
+        "NORAD_CAT_ID", "SATNAME", "OBJECT_TYPE", "COUNTRY", "SITE",
+        "LAUNCH", "DECAY", "PERIOD", "INCLINATION", "APOGEE", "PERIGEE",
+        "RCS_SIZE",
+    ]
+
     NUMERIC_COLUMNS = [
         "NORAD_CAT_ID",
         "PERIOD",
         "INCLINATION",
         "APOGEE",
         "PERIGEE",
-        "RCSVALUE",
     ]
 
     VALID_OBJECT_TYPES = [
         "PAYLOAD", "ROCKET BODY", "DEBRIS", "UNKNOWN", "TBA"
     ]
+
+    VALID_RCS_SIZES = ["SMALL", "MEDIUM", "LARGE"]
 
     FIRST_LAUNCH = pd.Timestamp("1957-10-04")
 
@@ -36,6 +43,10 @@ class SatellitesValidator:
         self.satellites = satellites
 
     def validate(self) -> tuple[pd.DataFrame, pd.DataFrame]:
+        missing = [c for c in self.REQUIRED_COLUMNS if c not in self.satellites.columns]
+        if missing:
+            raise DataValidationError(f"Missing columns: {missing}")
+
         work = self.satellites.copy()
 
         # Parsing: unparseable values become NaN / NaT
@@ -48,10 +59,14 @@ class SatellitesValidator:
         work["DECAY"] = pd.to_datetime(work["DECAY"], format="mixed", errors="coerce")
 
         # Text cleaning
-        text_cols = ["SATNAME", "OBJECT_TYPE", "COUNTRY", "SITE"]
+        text_cols = ["SATNAME", "OBJECT_TYPE", "COUNTRY", "SITE", "RCS_SIZE"]
         for col in text_cols:
             work[col] = work[col].astype("string").str.strip()
         work["OBJECT_TYPE"] = work["OBJECT_TYPE"].str.upper()
+        work["RCS_SIZE"] = work["RCS_SIZE"].str.upper()
+        work["RCS_SIZE"] = work["RCS_SIZE"].where(
+            work["RCS_SIZE"].isin(self.VALID_RCS_SIZES)
+        )
 
         is_duplicate = work.duplicated(subset=["NORAD_CAT_ID"], keep="first")
 
@@ -71,7 +86,6 @@ class SatellitesValidator:
             & (work["APOGEE"] >= work["PERIGEE"])
             & (work["PERIOD"].isna() | (work["PERIOD"] > 0))
             & (work["INCLINATION"].isna() | work["INCLINATION"].between(0, 180))
-            & (work["RCSVALUE"].isna() | (work["RCSVALUE"] >= 0))
             & ~is_duplicate
         ).fillna(False)
 

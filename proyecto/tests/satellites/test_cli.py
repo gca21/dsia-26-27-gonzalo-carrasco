@@ -15,9 +15,9 @@ def test_cli_processes_satellites_and_writes_files(tmp_path, monkeypatch):
     output_csv = tmp_path / "output" / "clean_satellites.csv"
     input_csv.write_text(
         "NORAD_CAT_ID,SATNAME,OBJECT_TYPE,COUNTRY,SITE,LAUNCH,DECAY,"
-        "PERIOD,INCLINATION,APOGEE,PERIGEE,RCSVALUE\n"
-        "1,Satellite A,PAYLOAD,US,AFETR,2020-01-01,,90,51.6,500,400,0.1\n"
-        "0,Invalid satellite,DEBRIS,RU,TTMTR,2021-01-01,,100,60,500,400,0.2\n",
+        "PERIOD,INCLINATION,APOGEE,PERIGEE,RCS_SIZE\n"
+        "1,Satellite A,PAYLOAD,US,AFETR,2020-01-01,,90,51.6,500,400,SMALL\n"
+        "0,Invalid satellite,DEBRIS,RU,TTMTR,2021-01-01,,100,60,500,400,MEDIUM\n",
         encoding="utf-8",
     )
     monkeypatch.setattr(

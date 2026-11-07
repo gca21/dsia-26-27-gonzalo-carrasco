@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 class DataLoadError(Exception):
@@ -24,7 +27,7 @@ class CsvSatellitesRepository:
         "INCLINATION",
         "APOGEE",
         "PERIGEE",
-        "RCSVALUE",
+        "RCS_SIZE",
     ]
 
     def __init__(self, path: Path) -> None:
@@ -34,7 +37,9 @@ class CsvSatellitesRepository:
         if not self.path.exists():
             raise DataLoadError(f"File not found: {self.path}")
         df = pd.read_csv(self.path, encoding="utf-8")
-        return self.__filter_columns(df)
+        df = self.__filter_columns(df)
+        logger.info("Loaded %d rows from %s", len(df), self.path.name)
+        return df
 
     def __filter_columns(self, satellites: pd.DataFrame) -> pd.DataFrame:
         # Remove irrelevant columns from the dataframe

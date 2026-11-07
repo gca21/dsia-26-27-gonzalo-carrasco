@@ -20,8 +20,8 @@ def test_load_returns_only_satellite_features(tmp_path):
     path = tmp_path / "satellites.csv"
     path.write_text(
         "NORAD_CAT_ID,SATNAME,OBJECT_TYPE,COUNTRY,SITE,LAUNCH,DECAY,"
-        "PERIOD,INCLINATION,APOGEE,PERIGEE,RCSVALUE,EXTRA\n"
-        "1,Test satellite,PAYLOAD,US,AFETR,2020-01-01,,90,50,500,400,0.1,ignored\n",
+        "PERIOD,INCLINATION,APOGEE,PERIGEE,RCS_SIZE,RCSVALUE,EXTRA\n"
+        "1,Test satellite,PAYLOAD,US,AFETR,2020-01-01,,90,50,500,400,SMALL,0,ignored\n",
         encoding="utf-8",
     )
 
@@ -32,6 +32,8 @@ def test_load_returns_only_satellite_features(tmp_path):
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (1, 12)
     assert "EXTRA" not in df.columns
+    assert "RCSVALUE" not in df.columns
+    assert df.loc[0, "RCS_SIZE"] == "SMALL"
     assert df.loc[0, "SATNAME"] == "Test satellite"
 
 
