@@ -1,3 +1,4 @@
+models/
 *.json
 ventas_limpias.csv
 satellites.csv
