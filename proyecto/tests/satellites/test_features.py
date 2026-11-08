@@ -88,3 +88,14 @@ def test_preprocessor_leaves_no_nulls(builder, satellites_mini):
     # Assert
     assert result.shape[0] == len(X)
     assert not np.isnan(result).any()
+
+def test_build_features_does_not_need_the_target(builder, satellites_mini):
+    # Arrange
+    new_objects = satellites_mini.drop(columns=["OBJECT_TYPE"])
+
+    # Act
+    X = builder.build_features(new_objects)
+
+    # Assert
+    assert X.columns.tolist() == builder.NUMERIC + builder.CATEGORICAL
+    assert len(X) == len(new_objects)
