@@ -41,7 +41,6 @@ class SatellitesFeatureBuilder:
 
         out = df.copy()
         launch = pd.to_datetime(out["LAUNCH"], errors="raise")
-        out["LAUNCH_YEAR"] = launch.dt.year.fillna(out["LAUNCH_YEAR"])
         out["LAUNCH_MONTH"] = launch.dt.month
         out["DECAYED"] = pd.to_datetime(out["DECAY"], errors="coerce").notna().astype(int)  # 1=Decayed, 0=In orbit
         return out
