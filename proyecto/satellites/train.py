@@ -171,3 +171,28 @@ class SatellitesTrainer:
         }
         self.save(model, metadata, output_dir)
         return metrics
+
+
+if __name__ == "__main__":
+    from satellites.loader import CsvSatellitesRepository
+    from satellites.validator import SatellitesValidator
+
+    logging.basicConfig(
+        level="INFO", format="%(asctime)s %(levelname)s %(name)s %(message)s"
+    )
+
+    root = Path(__file__).resolve().parent.parent
+    raw = CsvSatellitesRepository(root / "data/satellites/satellites.csv").load()
+    satellites, errors = SatellitesValidator(raw).validate()
+    print(f"Valid rows: {len(satellites)}, invalid rows: {len(errors)}")
+
+    metrics = SatellitesTrainer().train(satellites, root / "models")
+
+    print(f"Accuracy: {metrics['accuracy']:.3f}")
+    print(f"Macro F1: {metrics['f1_macro']:.3f} (baseline {metrics['baseline_f1_macro']:.3f})")
+    for label, values in metrics["per_class"].items():
+        print(
+            f"{label:12s} precision={values['precision']:.2f} "
+            f"recall={values['recall']:.2f} f1={values['f1']:.2f} "
+            f"support={values['support']}"
+        )
