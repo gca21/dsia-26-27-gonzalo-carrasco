@@ -45,6 +45,26 @@ class SatellitesFeatureBuilder:
         out["DECAYED"] = pd.to_datetime(out["DECAY"], errors="coerce").notna().astype(int)  # 1=Decayed, 0=In orbit
         return out
 
+    def build_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Returns X from rows that may not have a target (inference)"""
+
+        required = [c for c in self.RAW_REQUIRED if c != self.TARGET]
+        missing = [c for c in required if c not in df.columns]
+        if missing:
+            raise DataTransformationError(f"Missing columns for features: {missing}")
+
+        columns = self.NUMERIC + self.CATEGORICAL
+        leaked = [c for c in self.EXCLUDED if c in columns]
+        if leaked:
+            raise DataTransformationError(f"Excluded columns present in features: {leaked}")
+
+        X = self.add_derived(df)[columns].copy()
+        # Pandas nulls to np.nan
+        X[self.CATEGORICAL] = (
+            X[self.CATEGORICAL].astype(object).where(X[self.CATEGORICAL].notna(), np.nan)
+        )
+        return X
+
     def select_features(self, df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
         """Returns (X, y), removes rows without target"""
 
@@ -52,22 +72,12 @@ class SatellitesFeatureBuilder:
         if missing:
             raise DataTransformationError(f"Missing columns for features: {missing}")
 
-        df = self.add_derived(df)
         n_before = len(df)
         df = df.dropna(subset=[self.TARGET])
         if len(df) < n_before:
             logger.warning("Descartadas %d filas sin %s", n_before - len(df), self.TARGET)
 
-        columns = self.NUMERIC + self.CATEGORICAL
-        leaked = [c for c in self.EXCLUDED if c in columns]
-        if leaked:
-            raise DataTransformationError(f"Excluded columns present in features: {leaked}")
-
-        X = df[columns].copy()
-        # Pandas nulls to np.nan
-        X[self.CATEGORICAL] = (
-            X[self.CATEGORICAL].astype(object).where(X[self.CATEGORICAL].notna(), np.nan)
-        )
+        X = self.build_features(df)
         y = df[self.TARGET]
 
         # Check that each feature has more than 1 value
