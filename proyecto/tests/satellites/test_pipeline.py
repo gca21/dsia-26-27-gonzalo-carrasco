@@ -8,6 +8,8 @@ import pytest
 from satellites.ai.client import MockClient
 from satellites.pipeline import GateError, PipelineConfig, SatellitesPipeline
 
+pytestmark = pytest.mark.integration
+
 
 def make_pipeline(raw_csv, output_dir, trainer, **options):
     config = PipelineConfig(input_path=raw_csv, output_dir=output_dir, **options)

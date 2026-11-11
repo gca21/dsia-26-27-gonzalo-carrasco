@@ -25,7 +25,7 @@ def fast_trainer_and_clean_logging(monkeypatch):
     root.handlers[:] = handlers
     root.setLevel(level)
 
-
+@pytest.mark.integration
 def test_cli_returns_0_and_writes_the_artifacts(raw_csv, tmp_path):
     # Arrange
     output_dir = tmp_path / "output"
@@ -39,7 +39,7 @@ def test_cli_returns_0_and_writes_the_artifacts(raw_csv, tmp_path):
     assert (output_dir / "run.log").exists()
     assert (output_dir / "predictions.csv").exists()
 
-
+@pytest.mark.integration
 def test_cli_returns_1_if_the_data_gate_fails(raw_csv, tmp_path):
     # Arrange
     broken = pd.read_csv(raw_csv)
