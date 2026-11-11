@@ -1,54 +1,80 @@
 from __future__ import annotations
 
-import json
-import sys
+import logging
 
 import pandas as pd
 import pytest
 
 from satellites.cli import main
+from satellites.train import SatellitesTrainer
 
 
-def test_cli_processes_satellites_and_writes_files(tmp_path, monkeypatch):
+@pytest.fixture(autouse=True)
+def fast_trainer_and_clean_logging(monkeypatch):
+    # The CLI builds its own trainer, so the class defaults are patched
+    monkeypatch.setattr(SatellitesTrainer, "N_TREES", 20)
+    monkeypatch.setattr(SatellitesTrainer, "MIN_ROWS", 100)
+    
+    # main() configures the root logger: restore it after each test
+    root = logging.getLogger()
+    handlers, level = root.handlers[:], root.level
+    yield
+    for handler in root.handlers[:]:
+        if handler not in handlers:
+            handler.close()
+    root.handlers[:] = handlers
+    root.setLevel(level)
+
+
+def test_cli_returns_0_and_writes_the_artifacts(raw_csv, tmp_path):
     # Arrange
-    input_csv = tmp_path / "satellites.csv"
-    output_csv = tmp_path / "output" / "clean_satellites.csv"
-    input_csv.write_text(
-        "NORAD_CAT_ID,SATNAME,OBJECT_TYPE,COUNTRY,SITE,LAUNCH,DECAY,"
-        "PERIOD,INCLINATION,APOGEE,PERIGEE,RCS_SIZE\n"
-        "1,Satellite A,PAYLOAD,US,AFETR,2020-01-01,,90,51.6,500,400,SMALL\n"
-        "0,Invalid satellite,DEBRIS,RU,TTMTR,2021-01-01,,100,60,500,400,MEDIUM\n",
-        encoding="utf-8",
-    )
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        ["satellites", "--input", str(input_csv), "--output", str(output_csv)],
-    )
+    output_dir = tmp_path / "output"
 
     # Act
-    main()
-    satellites_validos = pd.read_csv(output_csv)
-    calidad = json.loads((output_csv.parent / "quality_data.json").read_text())
+    code = main(["--input", str(raw_csv), "--output-dir", str(output_dir), "--min-f1", "0"])
 
     # Assert
-    assert satellites_validos["NORAD_CAT_ID"].tolist() == [1]
-    assert satellites_validos["ORBIT_CLASS"].tolist() == ["LEO"]
-    assert calidad == {"Total rows": 2, "Valid rows": 1, "Invalid rows": 1}
+    assert code == 0
+    assert (output_dir / "metrics.json").exists()
+    assert (output_dir / "run.log").exists()
+    assert (output_dir / "predictions.csv").exists()
 
 
-@pytest.mark.parametrize(
-    "args",
-    [
-        ["--output", "output.csv"],
-        ["--input", "satellites.csv"],
-    ],
-)
-def test_cli_requires_input_and_output(args, monkeypatch):
+def test_cli_returns_1_if_the_data_gate_fails(raw_csv, tmp_path):
     # Arrange
-    monkeypatch.setattr(sys, "argv", ["satellites", *args])
+    broken = pd.read_csv(raw_csv)
+    broken.loc[:150, "NORAD_CAT_ID"] = 0
+    broken.to_csv(raw_csv, index=False)
 
+    # Act
+    code = main(["--input", str(raw_csv), "--output-dir", str(tmp_path / "output")])
+
+    # Assert
+    assert code == 1
+
+
+def test_cli_returns_2_if_the_input_does_not_exist(tmp_path):
+    # Act
+    code = main(["--input", str(tmp_path / "missing.csv"), "--output-dir", str(tmp_path / "out")])
+
+    # Assert
+    assert code == 2
+
+
+def test_cli_returns_2_if_the_ai_provider_is_misconfigured(raw_csv, tmp_path, monkeypatch):
+    # Arrange
+    monkeypatch.setenv("AI_PROVIDER", "hf")  # Without HF_TOKEN
+
+    # Act
+    code = main(["--input", str(raw_csv), "--output-dir", str(tmp_path / "output")])
+
+    # Assert
+    assert code == 2
+
+
+@pytest.mark.parametrize("args", [["--output-dir", "output"], ["--input", "satellites.csv"]])
+def test_cli_requires_input_and_output_dir(args):
     # Act and assert
     with pytest.raises(SystemExit) as error:
-        main()
+        main(args)
     assert error.value.code == 2

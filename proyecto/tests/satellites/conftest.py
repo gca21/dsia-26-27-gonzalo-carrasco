@@ -10,14 +10,14 @@ from satellites.train import SatellitesTrainer
 @pytest.fixture
 def trainer():
     trainer = SatellitesTrainer()
-    trainer.N_TREES = 20  # No need for training a lot of trees for the tests
-    trainer.MIN_ROWS = 100 
+    trainer.N_TREES = 20  # Few trees for testing
+    trainer.MIN_ROWS = 100  # The synthetic dataset has only 300 rows
     return trainer
 
 
 @pytest.fixture
 def satellites_synthetic():
-    # Create synthetic catalog: 300 objects from 60 launch events + 10 UNKNOWN
+    # Create 300 objects from 60 launch events, plus 10 UNKNOWN
     rng = np.random.default_rng(0)
     n = 310
     launch_dates = pd.date_range("2000-01-01", periods=60, freq="30D").strftime("%Y-%m-%d")
@@ -44,3 +44,21 @@ def satellites_synthetic():
             "RCS_SIZE": rng.choice([None, "SMALL", "MEDIUM", "LARGE"], n),
         }
     )
+
+
+@pytest.fixture(autouse=True)
+def isolated_env(monkeypatch):
+    """Tests never depend on the developer's .env or environment variables"""
+
+    monkeypatch.setattr("satellites.config.load_dotenv", lambda *args, **kwargs: None)
+    for name in ("AI_PROVIDER", "HF_TOKEN", "HF_MODEL", "HF_INFERENCE_PROVIDER"):
+        monkeypatch.delenv(name, raising=False)
+
+
+@pytest.fixture
+def raw_csv(satellites_synthetic, tmp_path):
+    """Synthetic raw catalog written as csv, like the one the downloader produces"""
+
+    path = tmp_path / "satellites.csv"
+    satellites_synthetic.to_csv(path, index=False)
+    return path
