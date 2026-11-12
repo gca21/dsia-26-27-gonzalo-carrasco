@@ -1,0 +1,21 @@
+2026-11-12 11:44:13,761 INFO satellites.pipeline Pipeline started: data/satellites/satellites.csv -> output
+2026-11-12 11:44:18,523 INFO satellites.downloader Downloaded 71305 rows from Space-Track to data/satellites/satellites.csv
+2026-11-12 11:44:18,628 INFO satellites.loader Loaded 71305 rows from satellites.csv
+2026-11-12 11:44:19,030 INFO satellites.pipeline Validation: 69196 valid, 2109 invalid rows
+2026-11-12 11:44:19,032 INFO satellites.train Discarded 478 rows with other classes: {'UNKNOWN': 478}
+2026-11-12 11:44:19,063 INFO satellites.features Features: 68718 rows, 11 columns
+2026-11-12 11:44:19,068 INFO satellites.features Class distribution: {'DEBRIS': 34140, 'PAYLOAD': 27960, 'ROCKET BODY': 6618}
+2026-11-12 11:44:19,716 INFO satellites.train Split: 54975 train rows, 13743 test rows
+2026-11-12 11:44:19,720 INFO satellites.train Train classes: {'DEBRIS': 27312, 'PAYLOAD': 22368, 'ROCKET BODY': 5295}
+2026-11-12 11:44:19,721 INFO satellites.train Test classes: {'DEBRIS': 6828, 'PAYLOAD': 5592, 'ROCKET BODY': 1323}
+2026-11-12 11:44:19,722 INFO satellites.train Training RandomForest (100 trees, balanced class weights)
+2026-11-12 11:44:22,860 INFO satellites.train Macro F1: 0.858 (baseline 0.221), accuracy: 0.906
+2026-11-12 11:44:22,898 INFO satellites.train Model saved in output/model.joblib and metadata in output/metadata.json
+2026-11-12 11:44:22,902 INFO satellites.predict Model loaded from output/model.joblib
+2026-11-12 11:44:23,010 INFO satellites.predict Predicted 478 objects: {'PAYLOAD': 378, 'DEBRIS': 68, 'ROCKET BODY': 32}
+2026-11-12 11:44:23,230 INFO httpx2 HTTP Request: GET https://huggingface.co/api/agent-harnesses "HTTP/1.1 200 OK"
+2026-11-12 11:44:23,374 INFO httpx2 HTTP Request: GET https://huggingface.co/api/models/openai/gpt-oss-120b?expand=inferenceProviderMapping "HTTP/1.1 200 OK"
+2026-11-12 11:44:24,359 INFO httpx2 HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-12 11:44:25,278 INFO httpx2 HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-12 11:44:26,098 INFO httpx2 HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-12 11:44:26,110 INFO satellites.pipeline Pipeline finished correctly
