@@ -1,4 +1,3 @@
-models/
 *.json
 ventas_limpias.csv
 satellites.csv
@@ -7,5 +6,6 @@ clean_satellites.csv
 .venv
 __pycache__/
 .coverage
-*.joblib
 output/*.csv
+models/
+!metadata.json

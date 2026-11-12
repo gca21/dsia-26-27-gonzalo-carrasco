@@ -1,0 +1,82 @@
+{
+  "trained_at": "2026-11-12T10:44:22+00:00",
+  "sklearn_version": "1.9.1",
+  "random_state": 42,
+  "split": "StratifiedGroupKFold(n_splits=5), groups=LAUNCH|SITE",
+  "classes": [
+    "DEBRIS",
+    "PAYLOAD",
+    "ROCKET BODY"
+  ],
+  "features": {
+    "numeric": [
+      "PERIOD",
+      "INCLINATION",
+      "APOGEE",
+      "PERIGEE",
+      "LAUNCH_YEAR",
+      "LAUNCH_MONTH",
+      "DECAYED"
+    ],
+    "categorical": [
+      "COUNTRY",
+      "SITE",
+      "ORBIT_CLASS",
+      "RCS_SIZE"
+    ]
+  },
+  "rows": {
+    "total": 68718,
+    "train": 54975,
+    "test": 13743
+  },
+  "metrics": {
+    "accuracy": 0.9062795605035291,
+    "f1_macro": 0.8579389283153547,
+    "baseline_f1_macro": 0.22128238782752419,
+    "per_class": {
+      "DEBRIS": {
+        "precision": 0.9610705596107056,
+        "recall": 0.9256004686584651,
+        "f1": 0.943002088928678,
+        "support": 6828
+      },
+      "PAYLOAD": {
+        "precision": 0.9375233819678264,
+        "recall": 0.8962804005722461,
+        "f1": 0.9164381056865972,
+        "support": 5592
+      },
+      "ROCKET BODY": {
+        "precision": 0.6166941241076331,
+        "recall": 0.8488284202569917,
+        "f1": 0.7143765903307888,
+        "support": 1323
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "DEBRIS",
+        "PAYLOAD",
+        "ROCKET BODY"
+      ],
+      "matrix": [
+        [
+          6320,
+          223,
+          285
+        ],
+        [
+          167,
+          5012,
+          413
+        ],
+        [
+          89,
+          111,
+          1123
+        ]
+      ]
+    }
+  }
+}
