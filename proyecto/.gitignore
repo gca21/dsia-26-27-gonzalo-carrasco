@@ -7,3 +7,5 @@ clean_satellites.csv
 .venv
 __pycache__/
 .coverage
+*.joblib
+output/*.csv
