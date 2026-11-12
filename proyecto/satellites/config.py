@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 class Settings:
     """Configuration read from the environment (.env)"""
 
+    spacetrack_user: str | None = None
+    spacetrack_pass: str | None = None
     ai_provider: str = "mock"
     hf_token: str | None = None
     hf_model: str | None = None
@@ -19,6 +21,8 @@ class Settings:
     def from_env(cls) -> Settings:
         load_dotenv()
         return cls(
+            spacetrack_user=os.getenv("SPACETRACK_USER") or None,
+            spacetrack_pass=os.getenv("SPACETRACK_PASS") or None,
             ai_provider=os.getenv("AI_PROVIDER", "mock"),
             hf_token=os.getenv("HF_TOKEN") or None,
             hf_model=os.getenv("HF_MODEL") or None,

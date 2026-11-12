@@ -25,19 +25,24 @@ def fast_trainer_and_clean_logging(monkeypatch):
     root.handlers[:] = handlers
     root.setLevel(level)
 
+
 @pytest.mark.integration
 def test_cli_returns_0_and_writes_the_artifacts(raw_csv, tmp_path):
     # Arrange
     output_dir = tmp_path / "output"
 
     # Act
-    code = main(["--input", str(raw_csv), "--output-dir", str(output_dir), "--min-f1", "0"])
+    code = main([
+        "--input", str(raw_csv), "--output-dir", str(output_dir),
+        "--min-f1", "0", "--no-download",
+    ])
 
     # Assert
     assert code == 0
     assert (output_dir / "metrics.json").exists()
     assert (output_dir / "run.log").exists()
     assert (output_dir / "predictions.csv").exists()
+
 
 @pytest.mark.integration
 def test_cli_returns_1_if_the_data_gate_fails(raw_csv, tmp_path):
@@ -47,7 +52,9 @@ def test_cli_returns_1_if_the_data_gate_fails(raw_csv, tmp_path):
     broken.to_csv(raw_csv, index=False)
 
     # Act
-    code = main(["--input", str(raw_csv), "--output-dir", str(tmp_path / "output")])
+    code = main([
+        "--input", str(raw_csv), "--output-dir", str(tmp_path / "output"), "--no-download",
+    ])
 
     # Assert
     assert code == 1
@@ -55,7 +62,10 @@ def test_cli_returns_1_if_the_data_gate_fails(raw_csv, tmp_path):
 
 def test_cli_returns_2_if_the_input_does_not_exist(tmp_path):
     # Act
-    code = main(["--input", str(tmp_path / "missing.csv"), "--output-dir", str(tmp_path / "out")])
+    code = main([
+        "--input", str(tmp_path / "missing.csv"),
+        "--output-dir", str(tmp_path / "out"), "--no-download",
+    ])
 
     # Assert
     assert code == 2
@@ -66,6 +76,16 @@ def test_cli_returns_2_if_the_ai_provider_is_misconfigured(raw_csv, tmp_path, mo
     monkeypatch.setenv("AI_PROVIDER", "hf")  # Without HF_TOKEN
 
     # Act
+    code = main([
+        "--input", str(raw_csv), "--output-dir", str(tmp_path / "output"), "--no-download",
+    ])
+
+    # Assert
+    assert code == 2
+
+
+def test_cli_returns_2_if_the_space_track_credentials_are_missing(raw_csv, tmp_path):
+    # Act (the download is enabled by default)
     code = main(["--input", str(raw_csv), "--output-dir", str(tmp_path / "output")])
 
     # Assert

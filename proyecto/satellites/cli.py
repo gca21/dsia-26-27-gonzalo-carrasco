@@ -4,6 +4,7 @@ import argparse
 import logging
 from pathlib import Path
 
+from satellites.downloader import DataSourceError, SpaceTrackDownloader
 from satellites.ai.client import AIClientError, get_client
 from satellites.config import Settings
 from satellites.features import DataTransformationError
@@ -33,6 +34,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         help="Model gate: min macro F1 on the test set (default 0.5)")
     parser.add_argument("--explain-top", type=int, default=3,
                         help="Predictions explained by the AI, 0 to disable (default 3)")
+    parser.add_argument("--no-download", action="store_true",
+                        help="Do not update the input csv from Space-Track")
     return parser.parse_args(argv)
 
 
@@ -55,12 +58,15 @@ def main(argv: list[str] | None = None) -> int:
             settings.hf_token,
             settings.hf_inference_provider,
         )
-        SatellitesPipeline(config, client).run()
+        downloader = None
+        if not args.no_download:
+            downloader = SpaceTrackDownloader(settings.spacetrack_user, settings.spacetrack_pass)
+        SatellitesPipeline(config, client, downloader=downloader).run()
     except GateError:
         return EXIT_GATE  # Already logged by the pipeline
     except (
         DataLoadError, DataValidationError, DataTransformationError,
-        TrainingError, PredictionError, AIClientError,
+        TrainingError, PredictionError, AIClientError, DataSourceError,
     ) as error:
         logger.error("%s: %s", type(error).__name__, error)
         return EXIT_CONFIG

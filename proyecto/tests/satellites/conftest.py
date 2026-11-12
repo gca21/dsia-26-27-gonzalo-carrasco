@@ -51,7 +51,10 @@ def isolated_env(monkeypatch):
     """Tests never depend on the developer's .env or environment variables"""
 
     monkeypatch.setattr("satellites.config.load_dotenv", lambda *args, **kwargs: None)
-    for name in ("AI_PROVIDER", "HF_TOKEN", "HF_MODEL", "HF_INFERENCE_PROVIDER"):
+    for name in (
+        "SPACETRACK_USER", "SPACETRACK_PASS",
+        "AI_PROVIDER", "HF_TOKEN", "HF_MODEL", "HF_INFERENCE_PROVIDER",
+    ):
         monkeypatch.delenv(name, raising=False)
 
 

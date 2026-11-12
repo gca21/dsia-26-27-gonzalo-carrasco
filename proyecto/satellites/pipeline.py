@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from datetime import datetime, timezone
+from satellites.downloader import DataDownloader
 from satellites.ai.client import ModelClient
 from satellites.ai.explain import explain_prediction
 from satellites.loader import CsvSatellitesRepository
@@ -31,7 +33,7 @@ class PipelineConfig:
 
 
 class SatellitesPipeline:
-    """load -> validate -> data gate -> train -> model gate -> predict -> explain"""
+    """download -> load -> validate -> data gate -> train -> model gate -> predict -> explain"""
 
     METRICS_FILE = "metrics.json"
     CLEAN_FILE = "clean_satellites.csv"
@@ -43,10 +45,12 @@ class SatellitesPipeline:
         config: PipelineConfig,
         client: ModelClient,
         trainer: SatellitesTrainer | None = None,
+        downloader: DataDownloader | None = None,
     ) -> None:
-        self.config = config
-        self.client = client
-        self.trainer = trainer or SatellitesTrainer()
+            self.config = config
+            self.client = client
+            self.trainer = trainer or SatellitesTrainer()
+            self.downloader = downloader  # None = use the existing input file
 
     def run(self) -> dict:
         """Runs every stage. Writes the artifacts in output_dir (overwriting them)
@@ -56,10 +60,24 @@ class SatellitesPipeline:
         output_dir.mkdir(parents=True, exist_ok=True)
         logger.info("Pipeline started: %s -> %s", self.config.input_path, output_dir)
 
+        # Download
+        if self.downloader is not None:
+            rows = self.downloader.download(self.config.input_path)
+            download = {
+                "downloaded": True,
+                "rows": rows,
+                "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            }
+        else:
+            logger.info("Download skipped, using the existing file")
+            download = {"downloaded": False}
+
+        # Repository and metrics
         raw = CsvSatellitesRepository(self.config.input_path).load()
         valid, invalid = SatellitesValidator(raw).validate()
         error_rate = len(invalid) / len(raw) if len(raw) else 1.0
         metrics: dict = {
+            "download": download,
             "rows_in": len(raw),
             "rows_valid": len(valid),
             "rows_invalid": len(invalid),
@@ -76,6 +94,7 @@ class SatellitesPipeline:
                 f"> {self.config.max_error_rate:.3f}",
             )
 
+        # Training
         model_metrics = self.trainer.train(valid, output_dir)
         metrics["model"] = {
             key: model_metrics[key] for key in ("accuracy", "f1_macro", "baseline_f1_macro")
